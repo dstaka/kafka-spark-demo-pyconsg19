@@ -131,18 +131,6 @@ if __name__ == "__main__":
         'created_at',
         udf_get_pn_scores('tweet_tokenized').alias('sentiment_score'))
 
-
-    ## Output to Kafka
-    # Define schema to write data
-    # Deal with nested structure
-    # Each tweet_id has tweet_id, user_name, tweet, created_at, and sentiment_score
-    tweet_schema_output = StructType() \
-        .add("user_name", StringType()) \
-        .add("tweet", StringType()) \
-        .add("created_at", StringType()) \
-        .add("sentiment_score", LongType())
-    schema_output = StructType().add("tweet_id", LongType()).add("tweet_property", tweet_schema_output)
-
     # Print output to console
     query_console = df_kafka_string_parsed_formatted_score.writeStream.outputMode("append").format("console").start()
     # Process data until termination signal is received
