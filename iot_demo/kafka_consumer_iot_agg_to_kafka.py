@@ -1,4 +1,4 @@
-# Usage: spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.2 kafka_consumer_iot_agg_to_console.py
+# Usage: spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.3.2 kafka_consumer_iot_agg_to_kafka.py
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -9,6 +9,7 @@ kafka_broker_hostname='localhost'
 kafka_consumer_portno='9092'
 kafka_broker=kafka_broker_hostname + ':' + kafka_consumer_portno
 kafka_topic_input='topic-iot-raw'
+kafka_topic_output='topic-iot-agg'
 
 
 if __name__ == "__main__":
@@ -67,9 +68,15 @@ if __name__ == "__main__":
         col("avg(speed)").alias("avg_speed"),
         col("avg(accelerometer_x)").alias("avg_accelerometer_x"),
         col("avg(accelerometer_y)").alias("avg_accelerometer_y"),
-        col("avg(accelerometer_z)").alias("avg_accelerometer_z")
-        ).orderBy(asc("device_id"), asc("window_start"))
+        col("avg(accelerometer_z)").alias("avg_accelerometer_z"))
 
-    # Print output to console
-    query_console = df_windowavg_timewindow.writeStream.outputMode("complete").format("console").start()
-    query_console.awaitTermination()
+    # Send output to Kafka
+    query_kafka = df_windowavg_timewindow \
+        .selectExpr("to_json(struct(*)) AS value") \
+        .writeStream.outputMode("update") \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", kafka_broker) \
+        .option("topic", kafka_topic_output) \
+        .option("checkpointLocation", "checkpoint/send_to_kafka") \
+        .start()
+    query_kafka.awaitTermination()
