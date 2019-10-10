@@ -10,8 +10,6 @@ kafka_consumer_portno='9092'
 bs_servers=kafka_idaddr + ':' + kafka_consumer_portno
 kafka_topic_input='topic-iot-raw'
 kafka_topic_output='topic-iot-agg'
-consumer = KafkaConsumer(kafka_topic_input)
-consumer = KafkaConsumer(kafka_topic_input)
 
 
 if __name__ == "__main__":
@@ -20,6 +18,7 @@ if __name__ == "__main__":
     spark.sparkContext.setLogLevel("WARN")
 
     # Pull data from Kafka topic
+    consumer = KafkaConsumer(kafka_topic_input)
     df_kafka = spark.readStream.format(
         "kafka"
         ).option("kafka.bootstrap.servers", bs_servers
