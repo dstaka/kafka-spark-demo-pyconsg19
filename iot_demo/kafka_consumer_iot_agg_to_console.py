@@ -5,11 +5,10 @@ from pyspark.sql.types import *
 from kafka import KafkaConsumer
 
 # Set Kafka config
-kafka_idaddr='localhost'
+kafka_broker_hostname='localhost'
 kafka_consumer_portno='9092'
-bs_servers=kafka_idaddr + ':' + kafka_consumer_portno
+kafka_broker=kafka_broker_hostname + ':' + kafka_consumer_portno
 kafka_topic_input='topic-iot-raw'
-kafka_topic_output='topic-iot-agg'
 
 
 if __name__ == "__main__":
@@ -21,7 +20,7 @@ if __name__ == "__main__":
     consumer = KafkaConsumer(kafka_topic_input)
     df_kafka = spark.readStream.format(
         "kafka"
-        ).option("kafka.bootstrap.servers", bs_servers
+        ).option("kafka.bootstrap.servers", kafka_broker
         ).option("subscribe", kafka_topic_input).load()
 
     # Convert data of Kafka topic into String type
